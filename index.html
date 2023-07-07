@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no, viewport-fit=cover" />
+    <title>%VITE_NAME%</title>
+    <style>
+        body {
+            margin: 0;
+            position: fixed;
+            background: black;
+        }
+
+        .ball {
+            background: radial-gradient(red, green);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-direction: column;
+        }
+
+        .ball-strip-container {
+            display: flex;
+            /* flex-basis: 1; */
+            justify-content: space-between;
+        }
+
+        .ball-strip {
+            background: white;
+            width: 20px;
+            height: 5px;
+            /* transform-origin: center right; */
+        }
+
+        .ball-strip-v {
+            transform: rotate(-90deg) translate(8px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <canvas></canvas> -->
+    <!-- <script src="./src/index.ts" type="module"></script> -->
+    <div class="ball" style="grid-template-areas: '. t .''l . r''. b .';">
+        <div class="ball-strip-container">
+            <div class="ball-strip ball-strip-v" style="grid-area: t;"></div>
+        </div>
+        <div class="ball-strip-container">
+            <div class="ball-strip" style="grid-area: t;"></div>
+            <div class="ball-strip" style="grid-area: t;"></div>
+        </div>
+        <div class="ball-strip-container">
+            <div class="ball-strip ball-strip-v" style="grid-area: t;"></div>
+        </div>
+    </div>
+</body>
+
+</html>

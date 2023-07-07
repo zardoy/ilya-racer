@@ -1,0 +1,15 @@
+{
+    "name": "ilya-racer",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MIT",
+    "scripts": {
+        "lint": "eslint src/**"
+    },
+    "devDependencies": {
+        "@zardoy/tsconfig": "^1.5.0",
+        "eslint": "^8.43.0",
+        "eslint-config-zardoy": "^0.2.16",
+        "typescript": "^5.1.6"
+    }
+}
