@@ -25,3 +25,4 @@ experiment-*
 .eslintcache
 Thumbs.db
 .idea/
+.vscode

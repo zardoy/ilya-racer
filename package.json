@@ -4,6 +4,8 @@
     "private": true,
     "license": "MIT",
     "scripts": {
+        "start": "vite",
+        "build": "vite build",
         "lint": "eslint src/**"
     },
     "devDependencies": {
@@ -11,5 +13,9 @@
         "eslint": "^8.43.0",
         "eslint-config-zardoy": "^0.2.16",
         "typescript": "^5.1.6"
+    },
+    "dependencies": {
+        "@zardoy/vit": "^0.1.8",
+        "vite": "^4.4.2"
     }
 }

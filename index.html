@@ -12,6 +12,16 @@
             background: black;
         }
 
+        #players_count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 100;
+            background: transparent;
+            font-size: 1.3em;
+            color: white;
+        }
+
         .ball {
             background: radial-gradient(red, green);
             width: 60px;
@@ -42,9 +52,13 @@
 </head>
 
 <body>
-    <!-- <canvas></canvas> -->
-    <!-- <script src="./src/index.ts" type="module"></script> -->
-    <div class="ball" style="grid-template-areas: '. t .''l . r''. b .';">
+    <canvas></canvas>
+    <script src="./src/index.ts" type="module"></script>
+    <!-- <select id="players_count">
+        <option value="1" selected>1 player</option>
+        <option value="2">2 players</option>
+    </select> -->
+    <!-- <div class="ball" style="grid-template-areas: '. t .''l . r''. b .';">
         <div class="ball-strip-container">
             <div class="ball-strip ball-strip-v" style="grid-area: t;"></div>
         </div>
@@ -55,7 +69,7 @@
         <div class="ball-strip-container">
             <div class="ball-strip ball-strip-v" style="grid-area: t;"></div>
         </div>
-    </div>
+    </div> -->
 </body>
 
 </html>
