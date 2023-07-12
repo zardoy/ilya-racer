@@ -20,33 +20,7 @@
             background: transparent;
             font-size: 1.3em;
             color: white;
-        }
-
-        .ball {
-            background: radial-gradient(red, green);
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-direction: column;
-        }
-
-        .ball-strip-container {
-            display: flex;
-            /* flex-basis: 1; */
-            justify-content: space-between;
-        }
-
-        .ball-strip {
-            background: white;
-            width: 20px;
-            height: 5px;
-            /* transform-origin: center right; */
-        }
-
-        .ball-strip-v {
-            transform: rotate(-90deg) translate(8px);
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
         }
     </style>
 </head>
@@ -54,22 +28,13 @@
 <body>
     <canvas></canvas>
     <script src="./src/index.ts" type="module"></script>
+    <label id="players_count" tabindex="-1">
+        <input type="checkbox"> Second player
+    </label>
     <!-- <select id="players_count">
         <option value="1" selected>1 player</option>
         <option value="2">2 players</option>
     </select> -->
-    <!-- <div class="ball" style="grid-template-areas: '. t .''l . r''. b .';">
-        <div class="ball-strip-container">
-            <div class="ball-strip ball-strip-v" style="grid-area: t;"></div>
-        </div>
-        <div class="ball-strip-container">
-            <div class="ball-strip" style="grid-area: t;"></div>
-            <div class="ball-strip" style="grid-area: t;"></div>
-        </div>
-        <div class="ball-strip-container">
-            <div class="ball-strip ball-strip-v" style="grid-area: t;"></div>
-        </div>
-    </div> -->
 </body>
 
 </html>

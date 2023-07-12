@@ -1,6 +1,12 @@
 const canvas = document.querySelector('canvas')!
 const ctx = canvas.getContext('2d')!
 
+type Player = {
+    y: number
+    state: number
+    color: string
+}
+
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
@@ -16,43 +22,60 @@ const NEW_OBJECT_INTERVAL = 3_000
 
 const objects: Array<{ x: number; y: number }> = []
 
+let gameState = 'running' as 'running' | 'paused' | 'gameover'
+let onInteraction = () => {}
 setInterval(() => {
+    if (gameState !== 'running') return
     objects.push({
         x: canvas.width,
         y: Math.random() > 0.5 ? 0 : -1,
     })
 }, NEW_OBJECT_INTERVAL)
 
+let playersCount = 1
+
 let center: number
 let topEdge: number
 let bottomEdge: number
-let ballY: number
-let ballState = 2
+
+const players: Array<Player> = []
 let score = 0
 
 let prevUpdateCoordsTime = 0
-let paused = false
 
-const ballInput = () => {
-    if (paused) {
+document.querySelector('#players_count input')!.addEventListener('change', ({ target }) => {
+    playersCount = (target as HTMLInputElement).checked ? 2 : 1
+})
+
+const ballInput = (playerIndex: number) => {
+    onInteraction()
+    if (gameState !== 'running') {
         prevUpdateCoordsTime = performance.now()
-        paused = false
+        gameState = 'running'
         requestAnimationFrame(renderFrame)
         return
     }
-    if (Math.abs(ballState) === 1) return
-    ballState = ballState === 2 ? -1 : 1
+    const player = players[playerIndex] ?? players[0]
+    if (!player) return
+    if (Math.abs(player.state) === 1) return
+    player.state = player.state === 2 ? -1 : 1
 }
 
-addEventListener('keydown', ({ code }) => {
-    if (code === 'Space') {
-        ballInput()
+addEventListener('keydown', e => {
+    if (e.code === 'Space') {
+        ballInput(0)
+    } else if (e.code === 'Enter') {
+        ballInput(1)
     }
 })
 
-addEventListener('pointerdown', ({ target }) => {
+addEventListener('pointerdown', ({ target, clientX }) => {
     if ((target as HTMLElement).tagName.toLowerCase() !== 'canvas') return
-    ballInput()
+    if (clientX < canvas.width / 2) {
+        ballInput(0)
+    } else {
+        ballInput(1)
+    }
 })
 
 const connectedGamepads = [] as Gamepad[]
@@ -62,7 +85,7 @@ const gamepadConnected = () => {
     pullGamepadsInterval = setInterval(() => {
         for (const [i, gamepad] of connectedGamepads.entries()) {
             if (gamepad.buttons) {
-                ballInput()
+                ballInput(i)
             }
         }
     }, 100)
@@ -80,13 +103,15 @@ removeEventListener('gamepaddisconnected', ({ gamepad }) => {
     }
 })
 
-const renderPlayer = (color: string | CanvasGradient | CanvasPattern) => {
+const renderPlayer = (player: Player) => {
+    const { color, y } = player
+
     ctx.fillStyle = color
     ctx.beginPath()
-    ctx.arc(PLAYER_X, ballY, BALL_PLAYER_RADIUS, 0, Math.PI * 2)
+    ctx.arc(PLAYER_X, y, BALL_PLAYER_RADIUS, 0, Math.PI * 2)
     ctx.fill()
     ctx.strokeStyle = color
-    ctx.strokeRect(PLAYER_X - BALL_PLAYER_RADIUS, ballY - BALL_PLAYER_RADIUS, BALL_PLAYER_RADIUS * 2, BALL_PLAYER_RADIUS * 2)
+    ctx.strokeRect(PLAYER_X - BALL_PLAYER_RADIUS, y - BALL_PLAYER_RADIUS, BALL_PLAYER_RADIUS * 2, BALL_PLAYER_RADIUS * 2)
 }
 
 const renderEdges = () => {
@@ -111,7 +136,20 @@ const SPEED_FACTOR = 0.3
 const SPEED_OBJECTS_FACTOR = 1
 
 const pauseOrEndGame = (isGameOver: boolean) => {
-    paused = true
+    gameState = isGameOver ? 'gameover' : 'paused'
+
+    if (isGameOver) {
+        onInteraction = () => {
+            objects.splice(0, objects.length)
+            score = 0
+            onInteraction = () => {}
+        }
+    }
+}
+
+const renderPaused = () => {
+    const isGameOver = gameState === 'gameover'
+
     let fontSize = 60
     ctx.font = `${fontSize}px sans-serif`
     ctx.fillStyle = isGameOver ? 'red' : 'lightgreen'
@@ -122,15 +160,10 @@ const pauseOrEndGame = (isGameOver: boolean) => {
     ctx.font = `${fontSize}px sans-serif`
     printText = 'Click or press space to continue'
     ctx.fillText(printText, (canvas.width - ctx.measureText(printText).width) / 2, center + fontSize / 2)
-
-    if (isGameOver) {
-        objects.splice(0, objects.length)
-        score = 0
-    }
 }
 
 window.addEventListener('blur', () => {
-    if (paused) return
+    if (gameState !== 'running') return
     pauseOrEndGame(false)
 })
 
@@ -147,12 +180,14 @@ const updateCoords = (timestamp: number) => {
         objects[i]!.x -= updateUnits * SPEED_OBJECTS_FACTOR
         const { x, y: objY } = objects[i]!
         const y = objY >= 0 ? topEdge : bottomEdge - OBJECT_SIZE
-        if (
-            isIntersects(y, y + OBJECT_SIZE, ballY - BALL_PLAYER_RADIUS, ballY + BALL_PLAYER_RADIUS) &&
-            isIntersects(x, x + OBJECT_SIZE, PLAYER_X - BALL_PLAYER_RADIUS, PLAYER_X + BALL_PLAYER_RADIUS)
-        ) {
-            pauseOrEndGame(true)
-            return
+        for (const { y: playerY } of players) {
+            if (
+                isIntersects(y, y + OBJECT_SIZE, playerY - BALL_PLAYER_RADIUS, playerY + BALL_PLAYER_RADIUS) &&
+                isIntersects(x, x + OBJECT_SIZE, PLAYER_X - BALL_PLAYER_RADIUS, PLAYER_X + BALL_PLAYER_RADIUS)
+            ) {
+                pauseOrEndGame(true)
+                return
+            }
         }
 
         if (x <= -OBJECT_SIZE) {
@@ -164,27 +199,49 @@ const updateCoords = (timestamp: number) => {
 
     const ballAtBottom = bottomEdge - BALL_PLAYER_RADIUS
     const ballAtTop = topEdge + BALL_PLAYER_RADIUS
-    if (Math.abs(ballState) === 1) {
-        ballY += ballState * updateUnits
-        if (ballY >= ballAtBottom) ballState = 2
-        if (ballY <= ballAtTop) ballState = -2
-    } else {
-        ballY = ballState === 2 ? ballAtBottom : ballAtTop
+    for (const player of players) {
+        if (Math.abs(player.state) === 1) {
+            player.y += player.state * updateUnits
+            if (player.y >= ballAtBottom) player.state = 2
+            if (player.y <= ballAtTop) player.state = -2
+        } else {
+            player.y = player.state === 2 ? bottomEdge - BALL_PLAYER_RADIUS : topEdge + BALL_PLAYER_RADIUS
+        }
+    }
+}
+
+const renderPlayers = () => {
+    if (players.length < playersCount) {
+        for (let i = players.length; i < playersCount; i++) {
+            players.push({
+                state: i % 2 ? 2 : -2,
+                y: i % 2 ? bottomEdge - BALL_PLAYER_RADIUS : topEdge + BALL_PLAYER_RADIUS,
+                color: i ? 'dodgerblue' : 'deepskyblue',
+            })
+        }
+    } else if (players.length > playersCount) {
+        players.splice(playersCount, players.length - playersCount)
+    }
+
+    for (const player of players) {
+        renderPlayer(player)
     }
 }
 
 const renderFrame = (timestamp: DOMHighResTimeStamp) => {
-    if (paused) return
-    updateCoords(timestamp)
-    if (paused) return
+    if (gameState === 'running') {
+        updateCoords(timestamp)
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    renderEdges()
-    if (Math.abs(ballState) !== 1) {
-        ballY = ballState === 2 ? bottomEdge - BALL_PLAYER_RADIUS : topEdge + BALL_PLAYER_RADIUS
+    if (gameState !== 'running') {
+        renderPaused()
     }
-    renderPlayer('deepskyblue')
+
+    renderEdges()
+
+    renderPlayers()
     renderObjects()
     ctx.font = '20px sans-serif'
     ctx.fillStyle = 'white'
