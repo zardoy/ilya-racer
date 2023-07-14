@@ -228,6 +228,12 @@ const renderPlayers = () => {
     }
 }
 
+const renderScore = () => {
+    ctx.font = '20px sans-serif'
+    ctx.fillStyle = 'white'
+    ctx.fillText(`Score: ${score}`, 0, 50)
+}
+
 const renderFrame = (timestamp: DOMHighResTimeStamp) => {
     if (gameState === 'running') {
         updateCoords(timestamp)
@@ -235,17 +241,15 @@ const renderFrame = (timestamp: DOMHighResTimeStamp) => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
+    renderEdges()
+    renderPlayers()
+    renderObjects()
+    renderScore()
+
     if (gameState !== 'running') {
         renderPaused()
     }
 
-    renderEdges()
-
-    renderPlayers()
-    renderObjects()
-    ctx.font = '20px sans-serif'
-    ctx.fillStyle = 'white'
-    ctx.fillText(`Score: ${score}`, 0, 50)
     requestAnimationFrame(renderFrame)
 }
 
